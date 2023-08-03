@@ -1,38 +1,61 @@
-.App {
-  text-align: center;
+body {
+  background-color: darkgrey;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.highlightedLightTile {
+  width: 85px;
+  height: 85px;
+  border-style: solid;
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  align-items: center;
+  background-color: rgb(237, 176, 176);
 }
 
-.App-link {
-  color: #61dafb;
+.highlightedDarkTile {
+  width: 85px;
+  height: 85px;
+  border-style: solid;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgb(240, 137, 137);
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.lightTile {
+  width: 85px;
+  height: 85px;
+  border-style: solid;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color:burlywood;
+}
+
+.darkTile {
+  width: 85px;
+  height: 85px;
+  border-style: solid;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: sienna;
+}
+
+.box {
+  display: inline-grid;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(8, 85px);
+  grid-template-rows: repeat(8, 85px);
+}
+
+.promotionPopup {
+  z-index: 1;
+  position: fixed;
+  align-items: left;
+  display: inline-block;
+  padding-top: 255px;
 }
