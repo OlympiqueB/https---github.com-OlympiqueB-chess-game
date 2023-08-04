@@ -2,6 +2,16 @@ body {
   background-color: darkgrey;
 }
 
+.kingInCheck {
+  width: 85px;
+  height: 85px;
+  border-style: solid;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgb(160, 41, 41);
+}
+
 .highlightedLightTile {
   width: 85px;
   height: 85px;

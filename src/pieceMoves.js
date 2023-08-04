@@ -5,8 +5,8 @@ function pawnHighlights(pawn, board, check = false) {
   const ahead1 = pawn.row + direction < 8 && pawn.row + direction > -1 ? board[pawn.row + direction][pawn.col].piece.type : 'notATile';
   const ahead2 = pawn.row + direction * 2 < 8 && pawn.row + direction * 2 > -1 && pawn.piece.isInitPawn ? board[pawn.row + direction * 2][pawn.col].piece.type : 'notATile';
 
-  const posCapture1 = pawn.row + direction < 8 && pawn.col - 1 > - 1 ? board[pawn.row + direction][pawn.col - 1].piece : '';
-  const posCapture2 = pawn.row + direction < 8 && pawn.col + 1 < 8 ? board[pawn.row + direction][pawn.col + 1].piece : '';
+  const posCapture1 = pawn.row + direction < 8 && pawn.row + direction > -1 && pawn.col - 1 > - 1 ? board[pawn.row + direction][pawn.col - 1].piece : '';
+  const posCapture2 = pawn.row + direction < 8 && pawn.row + direction > -1 && pawn.col + 1 < 8 ? board[pawn.row + direction][pawn.col + 1].piece : '';
 
   const tilesToHighlight = [];
 
@@ -14,6 +14,13 @@ function pawnHighlights(pawn, board, check = false) {
     tilesToHighlight.push(`${pawn.row + direction}${pawn.col - 1}`);
   }
   if (posCapture2.color === oppositeColor && posCapture2.type !== 'King') {
+    tilesToHighlight.push(`${pawn.row + direction}${pawn.col + 1}`);
+  }
+
+  if (posCapture1.color === oppositeColor && check && posCapture1.type === 'King') {
+    tilesToHighlight.push(`${pawn.row + direction}${pawn.col - 1}`);
+  }
+  if (posCapture2.color === oppositeColor && check && posCapture2.type === 'King') {
     tilesToHighlight.push(`${pawn.row + direction}${pawn.col + 1}`);
   }
   
@@ -47,7 +54,8 @@ function knightHighlights(knight, board, check = false) {
   ];
 
   const filteredPoss = allPossibleTiles.filter(tile => (tile[0] > -1 && tile[0] < 8) && (tile[1] > -1 && tile[1] < 8));
-  const final = filteredPoss.filter(tile => board[tile[0]][tile[1]].piece.type === '' || (board[tile[0]][tile[1]].piece.color === oppositeColor && board[tile[0]][tile[1]].piece.type !== 'King'));
+  const final = filteredPoss.filter(tile => (board[tile[0]][tile[1]].piece.color === oppositeColor && check && board[tile[0]][tile[1]].piece.type === 'King') || (board[tile[0]][tile[1]].piece.type === '') || (board[tile[0]][tile[1]].piece.color === oppositeColor && board[tile[0]][tile[1]].piece.type !== 'King'));
+
   return final.map(t => `${t[0]}${t[1]}`);
 }
 
@@ -65,21 +73,25 @@ function bishopHighlights(bishop, board, check = false) {
 
   let result = [];
 
-  for (const [dr, dc] of directions) {
+  o:for (const [dr, dc] of directions) {
     let i = 1;
 
     while (currRow + i * dr >= 0 && currRow + i * dr < 8 &&
            currCol + i * dc >= 0 && currCol + i * dc < 8) {
       const newRow = currRow + i * dr;
       const newCol = currCol + i * dc;
+      const piece = board[newRow][newCol].piece;
 
-      if (board[newRow][newCol].piece.type === '') {
+      if (piece.type === '') {
         result.push(`${newRow}${newCol}`);
-      } else if (board[newRow][newCol].piece.color === oppositeColor && board[newRow][newCol].piece.type !== 'King') {
+      } else if (piece.color === oppositeColor && piece.type !== 'King') {
         result.push(`${newRow}${newCol}`);
-        break;
+        continue o;
+      } else if (piece.color === oppositeColor && check && piece.type === 'King') {
+        result.push(`${newRow}${newCol}`);
+        continue o;
       } else {
-        break;
+        continue o;
       }
 
       i++;
@@ -102,7 +114,7 @@ function rookHighlights(rook, board, check = false) {
     [0, -1]
   ];
 
-  for (const [rowInc, colInc] of directions) {
+  o:for (const [rowInc, colInc] of directions) {
     let newRow = currRow + rowInc;
     let newCol = currCol + colInc;
 
@@ -112,10 +124,14 @@ function rookHighlights(rook, board, check = false) {
         result.push(`${newRow}${newCol}`);
       } else if (piece.color === oppositeColor && piece.type !== 'King') {
         result.push(`${newRow}${newCol}`);
-        break;
+        continue o;
+      } else if (piece.color === oppositeColor && check && piece.type === 'King') {
+        result.push(`${newRow}${newCol}`);
+        continue o;
       } else {
-        break;
+        continue o;
       }
+
       newRow += rowInc;
       newCol += colInc;
     }
