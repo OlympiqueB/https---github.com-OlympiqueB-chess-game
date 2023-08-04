@@ -9,7 +9,6 @@ class Tile {
     this.isHighlighted = false;
     this.isLight = isLight;
     this.isClickable = false;
-    this.isInCheck = false;
   }
 }
 

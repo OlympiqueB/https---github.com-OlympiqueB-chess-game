@@ -44,6 +44,8 @@ body {
 
 .box {
   display: inline-grid;
+  grid-template-columns: auto 240px;
+  grid-template-rows: auto;
 }
 
 .board {
@@ -58,4 +60,15 @@ body {
   align-items: left;
   display: inline-block;
   padding-top: 255px;
+}
+
+.turn {
+  font-size: 40px;
+  display: table;
+  height: 60px;
+  width: 225px;
+  border-style: solid;
+  text-align: center;
+  vertical-align: middle;
+  margin: auto;
 }

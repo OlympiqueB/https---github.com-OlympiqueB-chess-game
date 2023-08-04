@@ -22,10 +22,10 @@ function Tile({ piece, color, active, isLight, clickHandler }) {
 function PromotionPopup({ onSelectPromotion, color }) {
   return (
     <div className="promotionPopup">
-      <img width="170" height="170" src={process.env.PUBLIC_URL + `${color}Queen.png`} onClick={() => onSelectPromotion('Queen')}></img>
-      <img width="170" height="170" src={process.env.PUBLIC_URL + `${color}Rook.png`} onClick={() => onSelectPromotion('Rook')}></img>
-      <img width="170" height="170" src={process.env.PUBLIC_URL + `${color}Knight.png`} onClick={() => onSelectPromotion('Knight')}></img>
-      <img width="170" height="170" src={process.env.PUBLIC_URL + `${color}Bishop.png`} onClick={() => onSelectPromotion('Bishop')}></img>
+      <img alt='Queen' width="170" height="170" src={process.env.PUBLIC_URL + `${color}Queen.png`} onClick={() => onSelectPromotion('Queen')}></img>
+      <img alt='Rook' width="170" height="170" src={process.env.PUBLIC_URL + `${color}Rook.png`} onClick={() => onSelectPromotion('Rook')}></img>
+      <img alt='Knight' width="170" height="170" src={process.env.PUBLIC_URL + `${color}Knight.png`} onClick={() => onSelectPromotion('Knight')}></img>
+      <img alt='Bishop' width="170" height="170" src={process.env.PUBLIC_URL + `${color}Bishop.png`} onClick={() => onSelectPromotion('Bishop')}></img>
     </div>
   );
 }
@@ -36,49 +36,97 @@ function Chessboard() {
   const [turn, setTurn] = useState(false);
   const [showPromoteSelect, setShowPromoteSelect] = useState(false);
   const [promoteTile, setPromoteTile] = useState('');
+  const [kingInCheck, setKingInCheck] = useState(false);
 
   const [promRow, promCol] = promoteTile.split('');
 
   function handleClick(r, c) {
     const [aRow, aCol] = activePiece.split('');
+    let newBoard = [...board];
+    console.log(newBoard);
+
+    console.log('Click event triggered:', r, c);
 
     if (activePiece) {
       if (activePiece === `${r}${c}`) { // if you click the same piece --> deactivate it
-        deActivatePiece(r, c);
+        deActivatePiece();
+        setBoard(newBoard);
         return;
       }
-      if (calcHighlights(aRow, aCol, board).includes(`${r}${c}`)) { // if you click a viable tile --> move the piece
-        if (board[aRow][aCol].piece.type === 'Pawn' && (r === 7 || r === 0)) { // check if it's a pawn about to be promoted
+      if (calcHighlights(aRow, aCol, newBoard).includes(`${r}${c}`)) { // if you click a viable tile
+        if (newBoard[aRow][aCol].piece.type === 'Pawn' && (r === 7 || r === 0)) { // check if it's a pawn about to be promoted
+          console.log(`Player ${turn ? 'black' : 'white'} promoted a pawn on row${r}|col${c}`);
           setPromoteTile(`${r}${c}`);
           setShowPromoteSelect(true);
           setTurn(!turn);
+          return;
         }
+        if (kingInCheck) {
+          const actPieceColor = newBoard[aRow][aCol].piece.color;
+
+          /*if (boardCopy[row][col].piece.isInitPawn === true) {
+            boardCopy[row][col].piece.isInitPawn = false;
+          }*/
+
+          newBoard[r][c].piece.type = newBoard[aRow][aCol].piece.type;
+          newBoard[r][c].piece.color = newBoard[aRow][aCol].piece.color;
+          newBoard[aRow][aCol].piece.type = '';
+          newBoard[aRow][aCol].piece.color = '';
+
+          const oppPieces = newBoard.flat(2).filter(t => t.piece.color !== actPieceColor && t.piece.color !== '');
+          let attackedTiles = new Set();
+
+          oppPieces.flat(2).forEach(t => calcHighlights(t.row, t.col, newBoard, true).forEach(calcT => attackedTiles.add(calcT)));
+          if ([...attackedTiles].filter(t => newBoard[t.split('')[0]][t.split('')[1]].piece.type === 'King').length > 0) {
+            deActivatePiece();
+            console.log("King is still in check, invalid move");
+            return;
+          } else {
+            movePiece(r, c);
+            newTurn();
+            return;
+          }
+        }
+
         movePiece(r, c);
+        newTurn();
         return;
       }
-      
     } else {
     }
 
-    deActivatePiece(aRow, aCol);
+    deActivatePiece();
     activatePiece(r, c);
-    return;
   }
 
   function movePiece(targetRow, targetCol) {
-    let newBoard = deHighlightAll([...board]);
-    const r = activePiece.split('')[0];
-    const c = activePiece.split('')[1];
-    if (newBoard[r][c].piece.isInitPawn === true) {
-      newBoard[r][c].piece.isInitPawn = false;
-    }
+    let newBoard = [...board];
+    newBoard.forEach(r => r.forEach(c => c.isHighlighted = false));
+    const actRow = activePiece.split('')[0];
+    const actCol = activePiece.split('')[1];
 
-    newBoard[targetRow][targetCol].piece.type = newBoard[r][c].piece.type;
-    newBoard[targetRow][targetCol].piece.color = newBoard[r][c].piece.color;
-    newBoard[r][c].piece.type = '';
-    newBoard[r][c].piece.color = '';
+    console.log(actRow, actCol);
+    if (newBoard[actRow][actCol].piece.isInitPawn === true) {
+      newBoard[actRow][actCol].piece.isInitPawn = false;
+    }
+    
+    console.log(newBoard[actRow][actCol].piece.type, newBoard[actRow][actCol].piece.color)
+    newBoard[targetRow][targetCol].piece.type = newBoard[actRow][actCol].piece.type;
+    newBoard[targetRow][targetCol].piece.color = newBoard[actRow][actCol].piece.color;
+    newBoard[actRow][actCol].piece.type = '';
+    newBoard[actRow][actCol].piece.color = '';
+
+    console.log(`Player ${turn ? 'black' : 'white'} moved a piece to row${targetRow}|col${targetCol}`);
+
+    if (calcHighlights(targetRow, targetCol, newBoard, true).filter(t => newBoard[t.split('')[0]][t.split('')[1]].piece.type === 'King').length > 0) {
+      setKingInCheck(true);
+      console.log(`${turn ? 'white' : 'black'} king is now in check`);
+    } else {
+      setKingInCheck(false);
+      //console.log(`${turn ? 'white' : 'black'} king is no longer in check`);
+    }
     setActivePiece('');
-    setBoard(newTurn());
+    setBoard(newBoard);
     return;
   }
 
@@ -99,49 +147,54 @@ function Chessboard() {
           c.isClickable = false;
         }
       } else {
-        if (c.piece.color === 'light') {
-          c.isClickable = false;
-        } else {
+        if (c.piece.color === 'dark') {
           c.isClickable = true;
+        } else {
+          c.isClickable =  false;
         }
-    }}));
-    
-    return boardCopy;
+      }
+    }));
+    console.log(`${turn ? 'white' : 'black'} is now on turn`);
+    setBoard(boardCopy);
   }
 
   function activatePiece(r, c) {
-    if (board[r][c].piece.type === '') return;
+    if (board[r][c].piece.type === '') {
+      console.log(`${turn ? 'black' : 'white'} deactivated his piece`);
+      return;
+    }
 
-    let newBoard = [...board];
-    let activeTiles = calcHighlights(r, c, newBoard).map(t => t.split(''));
+    let boardCopy = [...board];
+    let activeTiles = calcHighlights(r, c, boardCopy).map(t => t.split(''));
     
     activeTiles.forEach(t => {
-      newBoard[t[0]][t[1]].isHighlighted = true;
-      newBoard[t[0]][t[1]].isClickable = true;
+      boardCopy[t[0]][t[1]].isHighlighted = true;
+      boardCopy[t[0]][t[1]].isClickable = true;
     });
+    console.log(`${turn ? 'black' : 'white'} activated his piece at ${r}-${c}`);
     setActivePiece(`${r}${c}`);
-    setBoard(newBoard);
-    return;
+    setBoard(boardCopy);
   }
 
-  function deActivatePiece(r, c) {
-    if (!activePiece) return;
+  function deActivatePiece() {
+    if (!activePiece) {
+      return;
+    }
 
-    let newBoard = [...board];
-    let activeTiles = calcHighlights(activePiece.split('')[0], activePiece.split('')[1], newBoard).map(t => t.split(''));
+    let boardCopy = [...board];
 
+    let activeTiles = calcHighlights(activePiece.split('')[0], activePiece.split('')[1], boardCopy).map(t => t.split(''));
     activeTiles.forEach(t => {
-      newBoard[t[0]][t[1]].isHighlighted = false;
-      newBoard[t[0]][t[1]].isClickable = false;
+      boardCopy[t[0]][t[1]].isHighlighted = false;
+      boardCopy[t[0]][t[1]].isClickable = false;
     });
-    setActivePiece(``);
-    setBoard(newBoard);
-    return;
+    console.log(`${turn ? 'black' : 'white'} deactivated his piece at ${activePiece.split('')[0]}-${activePiece.split('')[1]}`);
+    setActivePiece('');
+    setBoard(boardCopy);
   }
 
   function handlePromotion(piece) {
     const [promRow, promCol] = promoteTile.split('');
-    //movePiece(promRow, promCol);
     let newBoard = [...board];
     
     newBoard[promRow][promCol].piece.type = piece;
@@ -161,12 +214,13 @@ function Chessboard() {
                 color={tile.piece.color}
                 active={tile.isHighlighted}
                 isLight={tile.isLight}
-                clickHandler={tile.isClickable ? () => handleClick(rowIndex, colIndex) : () => deActivatePiece(rowIndex, colIndex)}
+                clickHandler={tile.isClickable ? () => handleClick(rowIndex, colIndex) : () => deActivatePiece()}
               />
             ))
           ))}
           {showPromoteSelect && <PromotionPopup onSelectPromotion={handlePromotion} color={board[promRow][promCol].piece.color}/>}
       </div>
+      <div className='turn' style={{backgroundColor: !turn ? 'white' : 'grey'}}>{!turn ? "White's turn" : "Black's turn"}</div>
     </div>
   )
 }

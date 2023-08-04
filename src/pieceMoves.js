@@ -1,4 +1,4 @@
-function pawnHighlights(pawn, board) {
+function pawnHighlights(pawn, board, check = false) {
   const direction = pawn.piece.color === 'light' ? -1 : 1;
   const oppositeColor = pawn.piece.color === 'light' ? 'dark' : 'light';
 
@@ -32,7 +32,7 @@ function pawnHighlights(pawn, board) {
   return tilesToHighlight;
 }
 
-function knightHighlights(knight, board) {
+function knightHighlights(knight, board, check = false) {
   const oppositeColor = knight.piece.color === 'light' ? 'dark' : 'light';
 
   const allPossibleTiles = [
@@ -51,7 +51,7 @@ function knightHighlights(knight, board) {
   return final.map(t => `${t[0]}${t[1]}`);
 }
 
-function bishopHighlights(bishop, board) {
+function bishopHighlights(bishop, board, check = false) {
   const oppositeColor = bishop.piece.color === 'light' ? 'dark' : 'light';
   const currRow = bishop.row;
   const currCol = bishop.col;
@@ -89,7 +89,7 @@ function bishopHighlights(bishop, board) {
   return result;
 }
 
-function rookHighlights(rook, board) {
+function rookHighlights(rook, board, check = false) {
   const oppositeColor = rook.piece.color === 'light' ? 'dark' : 'light';
   const currRow = rook.row;
   const currCol = rook.col;
@@ -124,7 +124,7 @@ function rookHighlights(rook, board) {
   return result;
 }
 
-function queenHighlights(queen, board) {
+function queenHighlights(queen, board, check = false) {
   const oppositeColor = queen.piece.color === 'light' ? 'dark' : 'light';
   const currRow = queen.row;
   const currCol = queen.col;
@@ -135,7 +135,7 @@ function queenHighlights(queen, board) {
 
   let result = [];
 
-  for (const [dr, dc] of directions) {
+  o:for (const [dr, dc] of directions) {
     let newRow = currRow + dr;
     let newCol = currCol + dc;
 
@@ -146,9 +146,12 @@ function queenHighlights(queen, board) {
         result.push(`${newRow}${newCol}`);
       } else if (piece.color === oppositeColor && piece.type !== 'King') {
         result.push(`${newRow}${newCol}`);
-        break;
+        continue o;
+      } else if (piece.color === oppositeColor && check && piece.type === 'King') {
+        result.push(`${newRow}${newCol}`);
+        continue o;
       } else {
-        break;
+        continue o;
       }
 
       newRow += dr;
@@ -185,21 +188,21 @@ function kingHighlights(king, board) {
   return result;
 }
 
-export default function calcHighlights(row, col, board) {
+export default function calcHighlights(row, col, board, check = false) {
   if (board[row][col].piece.type === 'Pawn') {
-    return pawnHighlights(board[row][col], board);
+    return pawnHighlights(board[row][col], board, check);
   }
   if (board[row][col].piece.type === 'Knight') {
-    return knightHighlights(board[row][col], board);
+    return knightHighlights(board[row][col], board, check);
   }
   if (board[row][col].piece.type === 'Bishop') {
-    return bishopHighlights(board[row][col], board);
+    return bishopHighlights(board[row][col], board, check);
   }
   if (board[row][col].piece.type === 'Rook') {
-    return rookHighlights(board[row][col], board);
+    return rookHighlights(board[row][col], board, check);
   }
   if (board[row][col].piece.type === 'Queen') {
-    return queenHighlights(board[row][col], board);
+    return queenHighlights(board[row][col], board, check);
   }
   if (board[row][col].piece.type === 'King') {
     return kingHighlights(board[row][col], board);
