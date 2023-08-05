@@ -1,7 +1,8 @@
 import './App.css';
-import { useState, useEffect, useDebugValue  } from 'react';
+import { useState } from 'react';
 import DefaultBoard from './defBoard.js';
 import calcHighlights from './pieceMoves.js';
+import attackedTiles from './attackedTiles.js'
 
 function Tile({ piece, color, active, isLight, clickHandler, kingCheck }) {
   return (
@@ -44,13 +45,25 @@ function Chessboard() {
     const [aRow, aCol] = activePiece.split('');
     let newBoard = deepCopy(board);
 
-    console.log('Click event triggered:', r, c);
-
     if (activePiece) {
       if (activePiece === `${r}${c}`) { // if you click the same piece --> deactivate it
         deActivatePiece(newBoard);
         return;
       }
+
+      if (calcHighlights(aRow, aCol, newBoard).includes(`${r}${c}c`)) { //castle to right
+        if (checkIfCheck(r, c, newBoard)) { 
+          newBoard[r][5].piece.type = newBoard[r][7].piece.type;
+          newBoard[r][5].piece.color = newBoard[r][7].piece.color;
+          newBoard[r][5].piece.hasItMoved = true;
+          newBoard[r][7].piece.type = '';
+          newBoard[r][7].piece.color = '';
+          delete newBoard[r][7].piece.hasItMoved;
+          setBoard(newBoard);
+          return;
+        }
+      }
+
       if (calcHighlights(aRow, aCol, newBoard).includes(`${r}${c}`)) { // if you click a viable tile
         if (checkIfCheck(r, c, newBoard)) {
           return;
@@ -76,7 +89,7 @@ function Chessboard() {
     board.forEach(r => r.forEach(c => c.isHighlighted = false));
     const actRow = activePiece.split('')[0];
     const actCol = activePiece.split('')[1];
-
+    
     if (board[actRow][actCol].piece.isInitPawn === true) {
       board[actRow][actCol].piece.isInitPawn = false;
     }
@@ -86,14 +99,11 @@ function Chessboard() {
     board[actRow][actCol].piece.type = '';
     board[actRow][actCol].piece.color = '';
 
-    console.log(`Player ${turn ? 'black' : 'white'} moved a piece to row${targetRow}|col${targetCol}`);
 
-    if (calcHighlights(targetRow, targetCol, board, true).filter(t => board[t.split('')[0]][t.split('')[1]].piece.type === 'King').length > 0) {
+    if (attackedTiles(targetRow, targetCol, board, true).filter(t => board[t.split('')[0]][t.split('')[1]].piece.type === 'King').length > 0) {
       setKingInCheck(true);
-      console.log(`${turn ? 'white' : 'black'} king is now in check`);
     } else {
       setKingInCheck(false);
-      //console.log(`${turn ? 'white' : 'black'} king is no longer in check`);
     }
     setActivePiece('');
     setBoard(board);
@@ -123,13 +133,11 @@ function Chessboard() {
         }
       }
     }));
-    console.log(`${turn ? 'white' : 'black'} is now on turn`);
     setBoard(board);
   }
 
   function activatePiece(r, c, board) {
     if (board[r][c].piece.type === '') {
-      console.log(`${turn ? 'black' : 'white'} deactivated his piece`);
       return;
     }
 
@@ -139,7 +147,6 @@ function Chessboard() {
       board[t[0]][t[1]].isHighlighted = true;
       board[t[0]][t[1]].isClickable = true;
     });
-    console.log(`${turn ? 'black' : 'white'} activated his piece at ${r}-${c}`);
     setActivePiece(`${r}${c}`);
     setBoard(board);
   }
@@ -154,7 +161,6 @@ function Chessboard() {
       board[t[0]][t[1]].isHighlighted = false;
       board[t[0]][t[1]].isClickable = false;
     });
-    console.log(`${turn ? 'black' : 'white'} deactivated his piece at ${activePiece.split('')[0]}-${activePiece.split('')[1]}`);
     setActivePiece('');
     setBoard(board);
   }
@@ -167,10 +173,8 @@ function Chessboard() {
 
     if (calcHighlights(promRow, promCol, newBoard, true).filter(t => newBoard[t.split('')[0]][t.split('')[1]].piece.type === 'King').length > 0) {
       setKingInCheck(true);
-      console.log(`${turn ? 'white' : 'black'} king is now in check`);
     } else {
       setKingInCheck(false);
-      //console.log(`${turn ? 'white' : 'black'} king is no longer in check`);
     }
 
     setBoard(newBoard);
@@ -179,6 +183,7 @@ function Chessboard() {
   }
 
   function checkIfCheck(r, c, board) {
+
     let checkBoard = deepCopy(board);
     const [aRow, aCol] = activePiece.split('');
     const actPieceColor = checkBoard[aRow][aCol].piece.color;
@@ -189,26 +194,26 @@ function Chessboard() {
     }
 
     if (checkBoard[aRow][aCol].piece.type === 'Pawn' && (r === 7 || r === 0)) { // check if it's a pawn about to be promoted
-      console.log(`Player ${turn ? 'black' : 'white'} promoted a pawn on row${r}|col${c}`);
       setPromoteTile(`${r}${c}`);
       setShowPromoteSelect(true);
     }
-
+    
     checkBoard[r][c].piece.type = checkBoard[aRow][aCol].piece.type;
     checkBoard[r][c].piece.color = checkBoard[aRow][aCol].piece.color;
     checkBoard[aRow][aCol].piece.type = '';
     checkBoard[aRow][aCol].piece.color = '';
 
     const oppPieces = checkBoard.flat(2).filter(t => t.piece.color !== actPieceColor && t.piece.color !== '');
-    let attackedTiles = new Set();
+    let attTiles = new Set();
 
-    oppPieces.flat(2).forEach(t => calcHighlights(t.row, t.col, checkBoard, true).forEach(calcT => attackedTiles.add(calcT)));
-    if ([...attackedTiles].filter(t => checkBoard[t.split('')[0]][t.split('')[1]].piece.type === 'King').length > 0) {
+    oppPieces.flat(2).forEach(t => attackedTiles(t.row, t.col, checkBoard).forEach(attT => attTiles.add(attT)));
+    if ([...attTiles].filter(t => checkBoard[t.split('')[0]][t.split('')[1]].piece.type === 'King').length > 0) {
       deActivatePiece(board);
-      alert(kingInCheck ? "King is still in check, invalid move" : "That is pinned.");
+      alert(kingInCheck ? "King is still in check, invalid move" : "You'd walk into a check.");
       successfulMove = false;
     } else {
       movePiece(r, c, board);
+      
       newTurn(board);
       successfulMove = true;
     }
