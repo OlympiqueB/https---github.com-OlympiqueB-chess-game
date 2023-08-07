@@ -1,4 +1,4 @@
-function pawnAttacks(pawn, board, check = false) {
+function pawnAttacks(pawn, board) {
   const direction = pawn.piece.color === 'light' ? -1 : 1;
   const oppositeColor = pawn.piece.color === 'light' ? 'dark' : 'light';
   let tilesToHighlight = [];
@@ -6,16 +6,16 @@ function pawnAttacks(pawn, board, check = false) {
   const posCapture1 = pawn.row + direction < 8 && pawn.row + direction > -1 && pawn.col - 1 > - 1 ? board[pawn.row + direction][pawn.col - 1].piece : '';
   const posCapture2 = pawn.row + direction < 8 && pawn.row + direction > -1 && pawn.col + 1 < 8 ? board[pawn.row + direction][pawn.col + 1].piece : '';
 
-  if (posCapture1.color === oppositeColor) {
+  if (posCapture1.color === oppositeColor || posCapture1.color === '') {
     tilesToHighlight.push(`${pawn.row + direction}${pawn.col - 1}`);
   }
-  if (posCapture2.color === oppositeColor) {
+  if (posCapture2.color === oppositeColor || posCapture2.color === '') {
     tilesToHighlight.push(`${pawn.row + direction}${pawn.col + 1}`);
   }
   return tilesToHighlight;
 }
 
-function knightAttacks(knight, board, check = false) {
+function knightAttacks(knight, board) {
   const oppositeColor = knight.piece.color === 'light' ? 'dark' : 'light';
 
   const allPossibleTiles = [
@@ -35,7 +35,7 @@ function knightAttacks(knight, board, check = false) {
   return final.map(t => `${t[0]}${t[1]}`);
 }
 
-function bishopAttacks(bishop, board, check = false) {
+function bishopAttacks(bishop, board) {
   const oppositeColor = bishop.piece.color === 'light' ? 'dark' : 'light';
   const currRow = bishop.row;
   const currCol = bishop.col;
@@ -74,7 +74,7 @@ function bishopAttacks(bishop, board, check = false) {
   return result;
 }
 
-function rookAttacks(rook, board, check = false) {
+function rookAttacks(rook, board) {
   const oppositeColor = rook.piece.color === 'light' ? 'dark' : 'light';
   const currRow = rook.row;
   const currCol = rook.col;
@@ -110,7 +110,7 @@ function rookAttacks(rook, board, check = false) {
   return result;
 }
 
-function queenAttacks(queen, board, check = false) {
+function queenAttacks(queen, board) {
   const oppositeColor = queen.piece.color === 'light' ? 'dark' : 'light';
   const currRow = queen.row;
   const currCol = queen.col;
