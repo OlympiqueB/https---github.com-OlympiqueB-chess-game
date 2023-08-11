@@ -1,28 +1,5 @@
-import attackedTiles2 from "./attackedTiles2"
-
 function deepCopy(arr) {
   return JSON.parse(JSON.stringify(arr));
-}
-
-// have to write a function that removes invalid moves (pinned pieces), this seems to be working so far
-function noSelfCheck(targetRow, targetCol, currRow, currCol, color, board) { 
-  let checkBoard = deepCopy(board);
-  checkBoard[targetRow][targetCol].piece = deepCopy(checkBoard[currRow][currCol].piece);
-  checkBoard[currRow][currCol].piece = {
-    type: '',
-    color: '',
-  };
-
-  const playerPieces = checkBoard.flat(2).filter(t => t.piece.color === color && t.piece.color !== '');
-
-  let attTiles = new Set();
-  playerPieces.forEach(t => attackedTiles2(t.row, t.col, checkBoard).forEach(attT => attTiles.add(attT)));
-
-  if ([...attTiles].filter(t => checkBoard[t.split('')[0]][t.split('')[1]].piece.type === 'King').length > 0) {
-    return true;
-  } else {
-    return false;
-  }
 }
 
 function getOppositeColor(color) {
@@ -45,10 +22,6 @@ function findValidMoves(piece, directions, board) {
 
     while (isValidTile(newRow, newCol)) {
       const targetPiece = board[newRow][newCol].piece;
-
-      if (noSelfCheck(newRow, newCol, currRow, currCol, oppositeColor, board)) {
-        continue o;
-      }
 
       if (targetPiece.type === '') {
         if (piece.piece.type === 'King') {
@@ -77,13 +50,13 @@ function pawnAttacks(pawn, board) {
   const oppositeColor = getOppositeColor(pawn.piece.color);
   let tilesToHighlight = [];
 
-  const posCaptureOne = isValidTile(pawn.row + direction, pawn.col - 1) ? board[pawn.row + direction][pawn.col - 1].piece : '';
-  const posCaptureTwo = isValidTile(pawn.row + direction, pawn.col + 1) ? board[pawn.row + direction][pawn.col + 1].piece : '';
+  const posCapture1 = board[pawn.row + direction]?.[pawn.col - 1]?.piece || '';
+  const posCapture2 = board[pawn.row + direction]?.[pawn.col + 1]?.piece || '';
 
-  if (posCaptureOne.color === oppositeColor || posCaptureOne.color === '' && !noSelfCheck(pawn.row + direction, pawn.col - 1, pawn.row, pawn.col, oppositeColor, board)) {
+  if (posCapture1.color === oppositeColor || posCapture1.color === '') {
     tilesToHighlight.push(`${pawn.row + direction}${pawn.col - 1}`);
   }
-  if (posCaptureTwo.color === oppositeColor || posCaptureTwo.color === '' && !noSelfCheck(pawn.row + direction, pawn.col + 1, pawn.row, pawn.col, oppositeColor, board)) {
+  if (posCapture2.color === oppositeColor || posCapture2.color === '') {
     tilesToHighlight.push(`${pawn.row + direction}${pawn.col + 1}`);
   }
 
@@ -106,7 +79,7 @@ function knightAttacks(knight, board) {
   const oppositeColor = getOppositeColor(knight.piece.color);
 
   return validMoves
-    .filter(([row, col]) => (board[row][col].piece.type === '' || board[row][col].piece.color === oppositeColor) && (!noSelfCheck(row, col, knight.row, knight.col, oppositeColor, board)))
+    .filter(([row, col]) => board[row][col].piece.type === '' || board[row][col].piece.color === oppositeColor)
     .map(([row, col]) => `${row}${col}`);
 }
 
@@ -159,7 +132,7 @@ const pieceAttackFunctions = {
   King: kingAttacks,
 };
 
-export default function attackedTiles(row, col, board, flag = false) {
+export default function attackedTiles2(row, col, board) {
   const piece = board[row][col].piece;
   const attackFunction = pieceAttackFunctions[piece.type];
   return attackFunction(board[row][col], board);

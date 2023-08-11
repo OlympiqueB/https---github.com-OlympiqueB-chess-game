@@ -32,13 +32,7 @@ function DefaultBoard() {
         tile.isClickable = true;
       }
 
-      if (row === 7 && col === 7 || row === 0 && col === 7) {
-        tile.piece.hasItMoved = false;
-      }
-      if (row === 7 && col === 0 || row === 0 && col === 0) {
-        tile.piece.hasItMoved = false;
-      }
-      if (tile.piece.type === 'King') {
+      if (tile.piece.type === 'King' || tile.piece.type === 'Rook') {
         tile.piece.hasItMoved = false;
       }
       

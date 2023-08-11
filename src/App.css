@@ -82,3 +82,14 @@ body {
   vertical-align: middle;
   margin: auto;
 }
+
+.stalemateScreen {
+  z-index: 1;
+  position: fixed;
+  align-items: center;
+  display: inline-block;
+  padding-top: 18%;
+  padding-left: 9%;
+  font-size: 80px;
+  font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}

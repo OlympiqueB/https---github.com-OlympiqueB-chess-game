@@ -1,4 +1,29 @@
 import attackedTiles from './attackedTiles.js'
+import attackedTiles2 from './attackedTiles2.js'
+
+function deepCopy(arr) {
+  return JSON.parse(JSON.stringify(arr));
+}
+
+function noSelfCheck(targetRow, targetCol, currRow, currCol, color, board) { 
+  let checkBoard = deepCopy(board);
+  checkBoard[targetRow][targetCol].piece = deepCopy(checkBoard[currRow][currCol].piece);
+  checkBoard[currRow][currCol].piece = {
+    type: '',
+    color: '',
+  };
+
+  const playerPieces = checkBoard.flat(2).filter(t => t.piece.color === color && t.piece.color !== '');
+
+  let attTiles = new Set();
+  playerPieces.forEach(t => attackedTiles2(t.row, t.col, checkBoard).forEach(attT => attTiles.add(attT)));
+
+  if ([...attTiles].filter(t => checkBoard[t.split('')[0]][t.split('')[1]].piece.type === 'King').length > 0) {
+    return true;
+  } else {
+    return false;
+  }
+}
 
 function pawnHighlights(pawn, board) {
   const direction = pawn.piece.color === 'light' ? -1 : 1;
@@ -18,163 +43,33 @@ function pawnHighlights(pawn, board) {
 
   let tilesToHighlight = [];
   
-  if (posEnPassant1) {
+  if (posEnPassant1 && !noSelfCheck(pawn.row + direction, pawn.col + 1, pawn.row, pawn.col, oppositeColor, board)) {
     tilesToHighlight.push(`${enPassantRow + direction}${enPassantCol1}`);
   }
-  if (posEnPassant2) {
+  if (posEnPassant2 && !noSelfCheck(pawn.row + direction, pawn.col - 1, pawn.row, pawn.col, oppositeColor, board)) {
     tilesToHighlight.push(`${enPassantRow + direction}${enPassantCol2}`);
   }
 
-  if (posCapture1.color === oppositeColor && posCapture1.type !== 'King') {
+  if (posCapture1.color === oppositeColor && posCapture1.type !== 'King' && !noSelfCheck(pawn.row + direction, pawn.col - 1, pawn.row, pawn.col, oppositeColor, board)) {
     tilesToHighlight.push(`${pawn.row + direction}${pawn.col - 1}`);
   }
-  if (posCapture2.color === oppositeColor && posCapture2.type !== 'King') {
+  if (posCapture2.color === oppositeColor && posCapture2.type !== 'King' && !noSelfCheck(pawn.row + direction, pawn.col + 1, pawn.row, pawn.col, oppositeColor, board)) {
     tilesToHighlight.push(`${pawn.row + direction}${pawn.col + 1}`);
   }
 
-  if (!ahead1 && ahead1 !== 'notATile') {
+  if (!ahead1 && ahead1 !== 'notATile' && !noSelfCheck(pawn.row + direction, pawn.col, pawn.row, pawn.col, oppositeColor, board)) {
     tilesToHighlight.push(`${pawn.row + direction}${pawn.col}`);
   } else {
     return tilesToHighlight;
   }
 
-  if (!ahead2 && ahead2 !== 'notATile') {
+  if (!ahead2 && ahead2 !== 'notATile' && !noSelfCheck(pawn.row + direction * 2, pawn.col, pawn.row, pawn.col, oppositeColor, board)) {
     tilesToHighlight.push(`${pawn.row + direction * 2}${pawn.col}`);
   } else {
     return tilesToHighlight;
   }
   
   return tilesToHighlight;
-}
-
-function knightHighlights(knight, board) {
-  const oppositeColor = knight.piece.color === 'light' ? 'dark' : 'light';
-
-  const allPossibleTiles = [
-    [knight.row + 2, knight.col - 1],
-    [knight.row + 2, knight.col + 1],
-    [knight.row - 2, knight.col - 1],
-    [knight.row - 2, knight.col + 1],
-    [knight.row + 1, knight.col - 2],
-    [knight.row + 1, knight.col + 2],
-    [knight.row - 1, knight.col - 2],
-    [knight.row - 1, knight.col + 2]
-  ];
-
-  const filteredPoss = allPossibleTiles.filter(tile => (tile[0] > -1 && tile[0] < 8) && (tile[1] > -1 && tile[1] < 8));
-  const final = filteredPoss.filter(tile => (board[tile[0]][tile[1]].piece.type === '') || (board[tile[0]][tile[1]].piece.color === oppositeColor && board[tile[0]][tile[1]].piece.type !== 'King'));
-
-  return final.map(t => `${t[0]}${t[1]}`);
-}
-
-function bishopHighlights(bishop, board) {
-  const oppositeColor = bishop.piece.color === 'light' ? 'dark' : 'light';
-  const currRow = bishop.row;
-  const currCol = bishop.col;
-
-  const directions = [
-    [-1, 1],
-    [-1, -1],
-    [1, -1],
-    [1, 1],
-  ];
-
-  let result = [];
-
-  o:for (const [dr, dc] of directions) {
-    let i = 1;
-
-    while (currRow + i * dr >= 0 && currRow + i * dr < 8 &&
-           currCol + i * dc >= 0 && currCol + i * dc < 8) {
-      const newRow = currRow + i * dr;
-      const newCol = currCol + i * dc;
-      const piece = board[newRow][newCol].piece;
-
-      if (piece.type === '') {
-        result.push(`${newRow}${newCol}`);
-      } else if (piece.color === oppositeColor && piece.type !== 'King') {
-        result.push(`${newRow}${newCol}`);
-        continue o;
-      } else {
-        continue o;
-      }
-
-      i++;
-    }
-  }
-
-  return result;
-}
-
-function rookHighlights(rook, board) {
-  const oppositeColor = rook.piece.color === 'light' ? 'dark' : 'light';
-  const currRow = rook.row;
-  const currCol = rook.col;
-  let result = [];
-
-  const directions = [
-    [-1, 0],
-    [1, 0],
-    [0, 1],
-    [0, -1]
-  ];
-
-  o:for (const [rowInc, colInc] of directions) {
-    let newRow = currRow + rowInc;
-    let newCol = currCol + colInc;
-
-    while (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
-      const piece = board[newRow][newCol].piece;
-      if (piece.type === '') {
-        result.push(`${newRow}${newCol}`);
-      } else if (piece.color === oppositeColor && piece.type !== 'King') {
-        result.push(`${newRow}${newCol}`);
-        continue o;
-      } else {
-        continue o;
-      }
-
-      newRow += rowInc;
-      newCol += colInc;
-    }
-  }
-
-  return result;
-}
-
-function queenHighlights(queen, board) {
-  const oppositeColor = queen.piece.color === 'light' ? 'dark' : 'light';
-  const currRow = queen.row;
-  const currCol = queen.col;
-  const directions = [
-    [-1, 0], [1, 0], [0, 1], [0, -1],
-    [-1, 1], [-1, -1], [1, -1], [1, 1]
-  ];
-
-  let result = [];
-
-  o:for (const [dr, dc] of directions) {
-    let newRow = currRow + dr;
-    let newCol = currCol + dc;
-
-    while (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
-      const piece = board[newRow][newCol].piece;
-
-      if (piece.type === '') {
-        result.push(`${newRow}${newCol}`);
-      } else if (piece.color === oppositeColor && piece.type !== 'King') {
-        result.push(`${newRow}${newCol}`);
-        continue o;
-      } else {
-        continue o;
-      }
-
-      newRow += dr;
-      newCol += dc;
-    }
-  }
-
-  return result;
 }
 
 function kingHighlights(king, board) {
@@ -202,7 +97,7 @@ function kingHighlights(king, board) {
   let result = [];
 
 
-  if (isRightCastlePossible) {
+  if (isRightCastlePossible ) {
     result.push(`${castleRow}6r`);
   }
   if (isLeftCastlePossible) {
@@ -215,9 +110,8 @@ function kingHighlights(king, board) {
     
     if (newRow > -1 && newRow < 8 && newCol > -1 && newCol < 8) {
       const piece = board[newRow][newCol].piece;
-      const isNewTileAttacked = ''; //have to check if the new tile is attacked by an opponent's piece
 
-      if (piece.type === '' || (piece.color === oppositeColor && piece.type !== 'King')) {
+      if ((piece.type === '' || (piece.color === oppositeColor && piece.type !== 'King')) && !noSelfCheck(newRow, newCol, king.row, king.col, oppositeColor, board)) {
         result.push(`${newRow}${newCol}`);
       }
     }
@@ -225,24 +119,13 @@ function kingHighlights(king, board) {
   return result;
 }
 
-export default function calcHighlights(row, col, board) {
+//attacked and possible squares are the same for all pieces, except pawns and kings (pawn capture, en passant, castle)
+export default function calcPosMoves(row, col, board) { 
   if (board[row][col].piece.type === 'Pawn') {
     return pawnHighlights(board[row][col], board);
-  }
-  if (board[row][col].piece.type === 'Knight') {
-    return knightHighlights(board[row][col], board);
-  }
-  if (board[row][col].piece.type === 'Bishop') {
-    return bishopHighlights(board[row][col], board);
-  }
-  if (board[row][col].piece.type === 'Rook') {
-    return rookHighlights(board[row][col], board);
-  }
-  if (board[row][col].piece.type === 'Queen') {
-    return queenHighlights(board[row][col], board);
-  }
+  } 
   if (board[row][col].piece.type === 'King') {
     return kingHighlights(board[row][col], board);
   }
-  return [];
+  return attackedTiles(row, col, board);
 };
