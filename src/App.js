@@ -83,7 +83,6 @@ function Chessboard() {
   function handleClick(r, c) {
     const [aRow, aCol] = activePiece.split('');
     let newBoard = deepCopy(board);
-    
 
     if (activePiece) {
       const possibleMoves = calcPosMoves(aRow, aCol, newBoard);
@@ -98,7 +97,7 @@ function Chessboard() {
         return;
       }
 
-      if (newBoard[aRow][aCol].piece.type === 'Pawn' && (r == (turn ? 7 : 0)) && noSelfCheck(r, c, newBoard, moveThePiece)) { // check if it's a pawn about to be promoted
+      if (newBoard[aRow][aCol].piece.type === 'Pawn' && (r == (turn ? 7 : 0))) { // check if it's a pawn about to be promoted
         setPromoteSquare(`${r}${c}`);
         setShowPromoteSelect(true);
       }
@@ -119,7 +118,7 @@ function Chessboard() {
         return;
       }
 
-      if (newBoard[aRow][aCol].piece.type === 'Pawn' && aCol != c && newBoard[r][c].piece.type === '' && noSelfCheck(r, c, newBoard, execEnPassant)) { // en passant
+      if (newBoard[aRow][aCol].piece.type === 'Pawn' && aCol != c && newBoard[r][c].piece.type === '') { // en passant
         execEnPassant(r, c, newBoard);
         checkCheck(r, c, newBoard);
         setBoard(newBoard);
@@ -127,11 +126,11 @@ function Chessboard() {
         return;
       }
 
-      if (possibleMoves.includes(`${r}${c}`) && noSelfCheck(r, c, newBoard, moveThePiece)) { // if you click a viable tile
+      if (possibleMoves.includes(`${r}${c}`)) { // if you click a viable tile
         moveThePiece(r, c, newBoard);
         checkCheck(r, c, newBoard);
         setBoard(newBoard);
-        if (calcPosMovesForBoard(newBoard) && kingInCheck) { //not working atm
+        if (calcPosMovesForBoard(newBoard) && kingInCheck) {
           setStalemate(true);
           newBoard.forEach(r => r.forEach(c => c.isClickable = false));
           setBoard(newBoard);
@@ -298,30 +297,6 @@ function Chessboard() {
     } else {
       setKingInCheck(false);
     }
-  }
-
-  function noSelfCheck(r, c, board, move) { // makes sure the player can't move in a way that puts their own king in check
-    let checkBoard = deepCopy(board);
-    const aRow = activePiece.split('')[0];
-    const aCol = activePiece.split('')[1];
-    const actPieceColor = checkBoard[aRow][aCol].piece.color;
-    let successfulMove = false;
-
-    move(r, c, checkBoard);
-
-    const oppPieces = checkBoard.flat(2).filter(t => t.piece.color !== actPieceColor && t.piece.color !== '');
-    let attTiles = new Set();
-
-    oppPieces.flat(2).forEach(t => attackedTiles(t.row, t.col, checkBoard).forEach(attT => attTiles.add(attT)));
-
-    if ([...attTiles].filter(t => checkBoard[t.split('')[0]][t.split('')[1]].piece.type === 'King').length > 0) {
-      successfulMove = false;
-    } else {
-      console.log(`${turn ? 'Black' : 'White'} moves to ${r}-${c}`)
-      successfulMove = true;
-    }
-
-    return successfulMove;
   }
 
   return (
