@@ -54,14 +54,14 @@ function Chessboard() {
   const [showPromoteSelect, setShowPromoteSelect] = useState(false);
   const [promoteSquare, setPromoteSquare] = useState('');
   const [kingInCheck, setKingInCheck] = useState(false);
-  const [attackedSquares, setAttackedSquares] = useState('');
+  /*const [attackedSquares, setAttackedSquares] = useState('');*/
   const [enPasPawn, setEnPasPawn] = useState([]);
   const [stalemate, setStalemate] = useState(false);
   const [mate, setMate] = useState(false);
 
-  useEffect(() => {
+  /*useEffect(() => {
     setAttackedSquares(calcAttackedTiles(board));
-  }, [turn]);
+  }, [turn]);*/
 
   const [promRow, promCol] = promoteSquare.split('');
 
@@ -212,7 +212,7 @@ function Chessboard() {
 
     newBoard[promRow][promCol].piece.type = piece;
   
-    if ([...attackedSquares].filter(t => newBoard[t.split('')[0]][t.split('')[1]].piece.type === 'King').length > 0) {
+    if ([...calcAttackedTiles(newBoard, piece.color)].filter(t => newBoard[t.split('')[0]][t.split('')[1]].piece.type === 'King').length > 0) {
       setKingInCheck(true);
     } else {
       setKingInCheck(false);

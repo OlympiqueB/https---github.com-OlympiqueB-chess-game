@@ -4,8 +4,7 @@ function deepCopy(arr) {
   return JSON.parse(JSON.stringify(arr));
 }
 
-// have to write a function that removes invalid moves (pinned pieces), this seems to be working so far
-function noSelfCheck(targetRow, targetCol, currRow, currCol, color, board) { 
+function noSelfCheck(targetRow, targetCol, currRow, currCol, color, board) { //this filters out invalid moves
   let checkBoard = deepCopy(board);
   checkBoard[targetRow][targetCol].piece = deepCopy(checkBoard[currRow][currCol].piece);
   checkBoard[currRow][currCol].piece = {
@@ -51,7 +50,7 @@ function findValidMoves(piece, directions, board) {
       }
 
       if (targetPiece.type === '') {
-        if (piece.piece.type === 'King') {
+        if (piece.piece.type === 'King') { //king can only move 1 square, so have to put this here, otherwise it will attack same as queen
           result.push(`${newRow}${newCol}`);
           continue o;
         } else {
