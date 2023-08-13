@@ -54,14 +54,9 @@ function Chessboard() {
   const [showPromoteSelect, setShowPromoteSelect] = useState(false);
   const [promoteSquare, setPromoteSquare] = useState('');
   const [kingInCheck, setKingInCheck] = useState(false);
-  /*const [attackedSquares, setAttackedSquares] = useState('');*/
   const [enPasPawn, setEnPasPawn] = useState([]);
   const [stalemate, setStalemate] = useState(false);
   const [mate, setMate] = useState(false);
-
-  /*useEffect(() => {
-    setAttackedSquares(calcAttackedTiles(board));
-  }, [turn]);*/
 
   const [promRow, promCol] = promoteSquare.split('');
 
@@ -69,7 +64,6 @@ function Chessboard() {
     const selectedPieces = board.flat(2).filter(t => t.piece.color === color);
     let possibleMoves = new Set();
     selectedPieces.flat(2).forEach(t => calcPosMoves(t.row, t.col, board).forEach(attT => possibleMoves.add(attT)));
-    console.log(possibleMoves);
     return possibleMoves.size === 0;
   }
 
@@ -130,14 +124,14 @@ function Chessboard() {
         moveThePiece(r, c, newBoard);
         checkCheck(r, c, newBoard);
         setBoard(newBoard);
-        if (calcPosMovesForBoard(newBoard) && kingInCheck) {
+        if (calcPosMovesForBoard(newBoard) && !checkCheck(r, c, newBoard)) {
           setStalemate(true);
           newBoard.forEach(r => r.forEach(c => c.isClickable = false));
           setBoard(newBoard);
           newTurn(newBoard);
           return;
         }
-        if (calcPosMovesForBoard(newBoard) && !kingInCheck) {
+        if (calcPosMovesForBoard(newBoard) && checkCheck(r, c, newBoard)) {
           setMate(true);
           newBoard.forEach(r => r.forEach(c => c.isClickable = false));
           setBoard(newBoard);
@@ -187,7 +181,6 @@ function Chessboard() {
       board[t[0]][t[1]].isHighlighted = true;
       board[t[0]][t[1]].isClickable = true;
     });
-    console.log(`${turn ? 'Black' : 'White'} clicks on their piece at ${r}-${c}`)
     setActivePiece(`${r}${c}`);
     setBoard(board);
   }
@@ -294,8 +287,10 @@ function Chessboard() {
 
     if ([...attTiles].filter(t => board[t.split('')[0]][t.split('')[1]].piece.type === 'King').length > 0) {
       setKingInCheck(true);
+      return true;
     } else {
       setKingInCheck(false);
+      return false;
     }
   }
 
