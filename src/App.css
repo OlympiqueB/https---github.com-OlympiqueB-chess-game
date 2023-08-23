@@ -53,12 +53,16 @@ body {
 }
 
 .box {
+  width: 100%;
+  justify-content: center;
   display: inline-grid;
-  grid-template-columns: auto 240px;
+  grid-template-columns: auto auto;
   grid-template-rows: auto;
 }
 
 .board {
+  position: relative;
+  margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(8, 85px);
   grid-template-rows: repeat(8, 85px);
@@ -74,22 +78,37 @@ body {
 
 .turn {
   font-size: 40px;
-  display: table;
   height: 60px;
   width: 225px;
   border-style: solid;
   text-align: center;
-  vertical-align: middle;
   margin: auto;
 }
 
-.stalemateScreen {
-  z-index: 1;
-  position: fixed;
+.blackBox {
+  font-size: 40px;
+  height: 60px;
+  width: 225px;
+  border-style: solid;
+  text-align: center;
+}
+
+.whiteBox {
+  font-size: 40px;
+  height: 60px;
+  width: 225px;
+  border-style: solid;
+  text-align: center;
+}
+
+.gameEndBox {
+  border-style: solid;
+  background-color: beige;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   align-items: center;
-  display: inline-block;
-  padding-top: 18%;
-  padding-left: 9%;
-  font-size: 80px;
+  font-size: 60px;
   font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
 }

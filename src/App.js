@@ -22,7 +22,7 @@ function Tile({ piece, color, active, isLight, clickHandler, kingCheck }) {
 
 function StalemateScreen({ }) {
   return (
-    <div className="stalemateScreen">
+    <div className="gameEndBox">
       STALEMATE
     </div>
   )
@@ -30,7 +30,7 @@ function StalemateScreen({ }) {
 
 function MateScreen({ turn }) {
   return (
-    <div className="stalemateScreen">
+    <div className="gameEndBox">
       {(turn ? "WHITE" : "BLACK")} WON
     </div>
   )
