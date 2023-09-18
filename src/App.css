@@ -2,53 +2,32 @@ body {
   background-color: darkgrey;
 }
 
-.kingInCheck {
+.kingInCheck, .highlightedLightTile, .highlightedDarkTile, .lightTile, .darkTile {
   width: 85px;
   height: 85px;
   border-style: solid;
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.kingInCheck {
   background-color: rgb(160, 41, 41);
 }
 
 .highlightedLightTile {
-  width: 85px;
-  height: 85px;
-  border-style: solid;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   background-color: rgb(237, 176, 176);
 }
 
 .highlightedDarkTile {
-  width: 85px;
-  height: 85px;
-  border-style: solid;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   background-color: rgb(240, 137, 137);
 }
 
 .lightTile {
-  width: 85px;
-  height: 85px;
-  border-style: solid;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   background-color:burlywood;
 }
 
 .darkTile {
-  width: 85px;
-  height: 85px;
-  border-style: solid;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   background-color: sienna;
 }
 
@@ -85,15 +64,7 @@ body {
   margin: auto;
 }
 
-.blackBox {
-  font-size: 40px;
-  height: 60px;
-  width: 225px;
-  border-style: solid;
-  text-align: center;
-}
-
-.whiteBox {
+.blackBox, .whiteBox {
   font-size: 40px;
   height: 60px;
   width: 225px;
