@@ -1,29 +1,6 @@
-import attackedTiles from './attackedTiles.js'
-import attackedTiles2 from './attackedTiles2.js'
+import attackedTiles from './CalculateAttackedTiles.js';
+import { noSelfCheck } from './NoSelfCheck.js';
 
-function deepCopy(arr) {
-  return JSON.parse(JSON.stringify(arr));
-}
-
-function noSelfCheck(targetRow, targetCol, currRow, currCol, color, board) { 
-  let checkBoard = deepCopy(board);
-  checkBoard[targetRow][targetCol].piece = deepCopy(checkBoard[currRow][currCol].piece);
-  checkBoard[currRow][currCol].piece = {
-    type: '',
-    color: '',
-  };
-
-  const playerPieces = checkBoard.flat(2).filter(t => t.piece.color === color && t.piece.color !== '');
-
-  let attTiles = new Set();
-  playerPieces.forEach(t => attackedTiles2(t.row, t.col, checkBoard).forEach(attT => attTiles.add(attT)));
-
-  if ([...attTiles].filter(t => checkBoard[t.split('')[0]][t.split('')[1]].piece.type === 'King').length > 0) {
-    return true;
-  } else {
-    return false;
-  }
-}
 
 function pawnHighlights(pawn, board) {
   const direction = pawn.piece.color === 'light' ? -1 : 1;
@@ -120,7 +97,7 @@ function kingHighlights(king, board) {
 }
 
 //attacked and possible squares are the same for all pieces, except pawns and kings (pawn capture, en passant, castle)
-export default function calcPosMoves(row, col, board) { 
+export default function hightlightPossibleMoves(row, col, board) { 
   if (board[row][col].piece.type === 'Pawn') {
     return pawnHighlights(board[row][col], board);
   } 

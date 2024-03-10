@@ -1,98 +1,117 @@
 import './App.css';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import DefaultBoard from './components/DefaultBoard.js';
-import calcPosMoves from './pieceMoves.js';
-import attackedTiles from './attackedTiles.js'
+import attackedTiles from './core/CalculateAttackedTiles.js'; 
 import { Tile } from './components/Tile.js';
 import { StalemateScreen, MateScreen } from './components/EndgameScreens.js';
 import { PawnPromotionSelect } from './components/PawnPromotionSelect.js';
-
+import hightlightPossibleMoves from './core/HighlightPossibleMoves.js';
 
 function Chessboard() {
   const [board, setBoard] = useState(DefaultBoard());
   const [activePiece, setActivePiece] = useState('');
   const [turn, setTurn] = useState(false);
+
   const [showPromoteSelect, setShowPromoteSelect] = useState(false);
   const [promoteSquare, setPromoteSquare] = useState('');
+
   const [kingInCheck, setKingInCheck] = useState(false);
+
   const [enPasPawn, setEnPasPawn] = useState([]);
+
   const [stalemate, setStalemate] = useState(false);
   const [mate, setMate] = useState(false);
 
   const [promRow, promCol] = promoteSquare.split('');
 
-  function calcPosMovesForBoard(board, color = (turn ? 'light' : 'dark')) {
+
+  // checks the number of viable moves of the current player. if the number is 0, the game ended (stalemate / checkmate)
+  function doesPossibleMoveExist(board, turn) {
+    const color = turn ? 'light' : 'dark';
     const selectedPieces = board.flat(2).filter(t => t.piece.color === color);
     let possibleMoves = new Set();
-    selectedPieces.flat(2).forEach(t => calcPosMoves(t.row, t.col, board).forEach(attT => possibleMoves.add(attT)));
-    return possibleMoves.size === 0;
+    selectedPieces.flat(2).forEach(t => hightlightPossibleMoves(t.row, t.col, board).forEach(attT => possibleMoves.add(attT)));
+    return possibleMoves.size !== 0;
   }
 
-  function calcAttackedTiles(board, color = (turn ? 'light' : 'dark')) {
+  function calcAttackedTiles(board, turn) {
+    const color = turn ? 'light' : 'dark';
     const selectedPieces = board.flat(2).filter(t => t.piece.color === color);
     let attTiles = new Set();
     selectedPieces.flat(2).forEach(t => attackedTiles(t.row, t.col, board).forEach(attT => attTiles.add(attT)));
     return attTiles;
   }
 
-  function handleClick(r, c) {
-    const [aRow, aCol] = activePiece.split('');
+  function handleClick(clickedRow, clickedCol) {
+    const [activeRow, activeCol] = activePiece.split('');
     let newBoard = deepCopy(board);
 
     if (activePiece) {
-      const possibleMoves = calcPosMoves(aRow, aCol, newBoard);
+      const possibleMoves = hightlightPossibleMoves(activeRow, activeCol, newBoard);
 
-      if (enPasPawn.length !== 0 && r != enPasPawn[0] && c != enPasPawn[1]) { // en passant can only be done in next turn (right after the init pawn move)
+      // en passant can only be done in next turn (right after the initial pawn move), so 
+      // this removes the en passant property, if en passant was not played
+      if (enPasPawn.length !== 0 && clickedRow != enPasPawn[0] && clickedCol != enPasPawn[1]) { 
         delete newBoard[enPasPawn[0]][enPasPawn[1]].piece.enPassant;
         setEnPasPawn([]);
       }
 
-      if (activePiece === `${r}${c}`) { // if you click the same piece --> deactivate it
+      // if you click the same piece --> deactivate it
+      if (activePiece === `${clickedRow}${clickedCol}`) { 
         deActivatePiece(newBoard);
         return;
       }
 
-      if (newBoard[aRow][aCol].piece.type === 'Pawn' && (r == (turn ? 7 : 0))) { // check if it's a pawn about to be promoted
-        setPromoteSquare(`${r}${c}`);
+      // check if it's a pawn about to be promoted
+      if (newBoard[activeRow][activeCol].piece.type === 'Pawn' && (clickedRow == (turn ? 7 : 0))) { 
+        setPromoteSquare(`${clickedRow}${clickedCol}`);
         setShowPromoteSelect(true);
       }
 
-      if (possibleMoves.includes(`${r}${c}r`)) { // castle to right
-        execCastleToRight(r, c, newBoard);
-        checkCheck(r, c, newBoard);
+      // castle to right
+      if (possibleMoves.includes(`${clickedRow}${clickedCol}r`)) { 
+        execCastleToRight(clickedRow, clickedCol, newBoard);
+        checkCheck(clickedRow, clickedCol, newBoard);
         setBoard(newBoard);
         newTurn(newBoard);
         return;
       }
 
-      if (possibleMoves.includes(`${r}${c}l`)) { // castle to left
-        execCastleToLeft(r, c, newBoard);
-        checkCheck(r, c, newBoard);
+      // castle to left
+      if (possibleMoves.includes(`${clickedRow}${clickedCol}l`)) { 
+        execCastleToLeft(clickedRow, clickedCol, newBoard);
+        checkCheck(clickedRow, clickedCol, newBoard);
         setBoard(newBoard);
         newTurn(newBoard);
         return;
       }
 
-      if (newBoard[aRow][aCol].piece.type === 'Pawn' && aCol != c && newBoard[r][c].piece.type === '') { // en passant
-        execEnPassant(r, c, newBoard);
-        checkCheck(r, c, newBoard);
+      // en passant
+      if (newBoard[activeRow][activeCol].piece.type === 'Pawn' && activeCol != clickedCol && newBoard[clickedRow][clickedCol].piece.type === '') { 
+        execEnPassant(clickedRow, clickedCol, newBoard);
+        checkCheck(clickedRow, clickedCol, newBoard);
         setBoard(newBoard);
         newTurn(newBoard);
         return;
       }
 
-      if (possibleMoves.includes(`${r}${c}`)) { // if you click a viable tile
-        moveThePiece(r, c, newBoard);
-        checkCheck(r, c, newBoard);
+      // if you click a viable tile -> 'regular move' (not en passant, castle or promotion)
+      if (possibleMoves.includes(`${clickedRow}${clickedCol}`)) { 
+        moveThePiece(clickedRow, clickedCol, newBoard);
+        checkCheck(clickedRow, clickedCol, newBoard);
         setBoard(newBoard);
-        if (calcPosMovesForBoard(newBoard) && !checkCheck(r, c, newBoard)) {
+
+        //stalemate
+        if (!doesPossibleMoveExist(newBoard, turn) && !checkCheck(clickedRow, clickedCol, newBoard)) {
           setStalemate(true);
           newBoard.forEach(r => r.forEach(c => c.isClickable = false));
           setBoard(newBoard);
           newTurn(newBoard);
           return;
         }
-        if (calcPosMovesForBoard(newBoard) && checkCheck(r, c, newBoard)) {
+
+        //checkmate
+        if (!doesPossibleMoveExist(newBoard, turn) && checkCheck(clickedRow, clickedCol, newBoard)) {
           setMate(true);
           newBoard.forEach(r => r.forEach(c => c.isClickable = false));
           setBoard(newBoard);
@@ -105,8 +124,8 @@ function Chessboard() {
     }
     
     deActivatePiece(newBoard);
-    if (newBoard[r][c].piece.color === (!turn ? 'light' : 'dark')) {
-      activatePiece(r, c, newBoard);
+    if (newBoard[clickedRow][clickedCol].piece.color === (!turn ? 'light' : 'dark')) {
+      activatePiece(clickedRow, clickedCol, newBoard);
     }
   }
 
@@ -136,7 +155,7 @@ function Chessboard() {
       return;
     }
 
-    let activeTiles = calcPosMoves(r, c, board).map(t => t.split(''));
+    let activeTiles = hightlightPossibleMoves(r, c, board).map(t => t.split(''));
     
     activeTiles.forEach(t => {
       board[t[0]][t[1]].isHighlighted = true;
@@ -151,7 +170,7 @@ function Chessboard() {
       return;
     }
 
-    let activeTiles = calcPosMoves(activePiece.split('')[0], activePiece.split('')[1], board).map(t => t.split(''));
+    let activeTiles = hightlightPossibleMoves(activePiece.split('')[0], activePiece.split('')[1], board).map(t => t.split(''));
     activeTiles.forEach(t => {
       board[t[0]][t[1]].isHighlighted = false;
       board[t[0]][t[1]].isClickable = false;
@@ -166,7 +185,7 @@ function Chessboard() {
 
     newBoard[promRow][promCol].piece.type = piece;
   
-    if ([...calcAttackedTiles(newBoard, piece.color)].filter(t => newBoard[t.split('')[0]][t.split('')[1]].piece.type === 'King').length > 0) {
+    if ([...calcAttackedTiles(newBoard, turn)].filter(t => newBoard[t.split('')[0]][t.split('')[1]].piece.type === 'King').length > 0) {
       setKingInCheck(true);
     } else {
       setKingInCheck(false);

@@ -1,7 +1,3 @@
-function deepCopy(arr) {
-  return JSON.parse(JSON.stringify(arr));
-}
-
 function getOppositeColor(color) {
   return color === 'light' ? 'dark' : 'light';
 }
@@ -132,7 +128,7 @@ const pieceAttackFunctions = {
   King: kingAttacks,
 };
 
-export default function attackedTiles2(row, col, board) {
+export default function attackedTilesClone(row, col, board) {
   const piece = board[row][col].piece;
   const attackFunction = pieceAttackFunctions[piece.type];
   return attackFunction(board[row][col], board);
