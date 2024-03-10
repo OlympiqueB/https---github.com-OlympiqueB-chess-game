@@ -1,5 +1,5 @@
 function getOppositeColor(color) {
-  return color === 'light' ? 'dark' : 'light';
+  return color === "light" ? "dark" : "light";
 }
 
 function isValidTile(row, col) {
@@ -12,15 +12,15 @@ function findValidMoves(piece, directions, board) {
   const currCol = piece.col;
   let result = [];
 
-  o:for (const [dr, dc] of directions) {
+  o: for (const [dr, dc] of directions) {
     let newRow = currRow + dr;
     let newCol = currCol + dc;
 
     while (isValidTile(newRow, newCol)) {
       const targetPiece = board[newRow][newCol].piece;
 
-      if (targetPiece.type === '') {
-        if (piece.piece.type === 'King') {
+      if (targetPiece.type === "") {
+        if (piece.piece.type === "King") {
           result.push(`${newRow}${newCol}`);
           continue o;
         } else {
@@ -42,17 +42,17 @@ function findValidMoves(piece, directions, board) {
 }
 
 function pawnAttacks(pawn, board) {
-  const direction = pawn.piece.color === 'light' ? -1 : 1;
+  const direction = pawn.piece.color === "light" ? -1 : 1;
   const oppositeColor = getOppositeColor(pawn.piece.color);
   let tilesToHighlight = [];
 
-  const posCapture1 = board[pawn.row + direction]?.[pawn.col - 1]?.piece || '';
-  const posCapture2 = board[pawn.row + direction]?.[pawn.col + 1]?.piece || '';
+  const posCapture1 = board[pawn.row + direction]?.[pawn.col - 1]?.piece || "";
+  const posCapture2 = board[pawn.row + direction]?.[pawn.col + 1]?.piece || "";
 
-  if (posCapture1.color === oppositeColor || posCapture1.color === '') {
+  if (posCapture1.color === oppositeColor || posCapture1.color === "") {
     tilesToHighlight.push(`${pawn.row + direction}${pawn.col - 1}`);
   }
-  if (posCapture2.color === oppositeColor || posCapture2.color === '') {
+  if (posCapture2.color === oppositeColor || posCapture2.color === "") {
     tilesToHighlight.push(`${pawn.row + direction}${pawn.col + 1}`);
   }
 
@@ -71,11 +71,17 @@ function knightAttacks(knight, board) {
     [knight.row - 1, knight.col + 2],
   ];
 
-  const validMoves = allPossibleTiles.filter(([row, col]) => isValidTile(row, col));
+  const validMoves = allPossibleTiles.filter(([row, col]) =>
+    isValidTile(row, col)
+  );
   const oppositeColor = getOppositeColor(knight.piece.color);
 
   return validMoves
-    .filter(([row, col]) => board[row][col].piece.type === '' || board[row][col].piece.color === oppositeColor)
+    .filter(
+      ([row, col]) =>
+        board[row][col].piece.type === "" ||
+        board[row][col].piece.color === oppositeColor
+    )
     .map(([row, col]) => `${row}${col}`);
 }
 
@@ -84,7 +90,7 @@ function rookAttacks(rook, board) {
     [-1, 0],
     [1, 0],
     [0, 1],
-    [0, -1]
+    [0, -1],
   ];
 
   return findValidMoves(rook, directions, board);
@@ -103,8 +109,14 @@ function bishopAttacks(bishop, board) {
 
 function queenAttacks(queen, board) {
   const directions = [
-    [-1, 0], [1, 0], [0, 1], [0, -1],
-    [-1, 1], [-1, -1], [1, -1], [1, 1]
+    [-1, 0],
+    [1, 0],
+    [0, 1],
+    [0, -1],
+    [-1, 1],
+    [-1, -1],
+    [1, -1],
+    [1, 1],
   ];
 
   return findValidMoves(queen, directions, board);
@@ -112,8 +124,14 @@ function queenAttacks(queen, board) {
 
 function kingAttacks(king, board) {
   const directions = [
-    [-1, 0], [1, 0], [0, 1], [0, -1],
-    [-1, 1], [-1, -1], [1, -1], [1, 1]
+    [-1, 0],
+    [1, 0],
+    [0, 1],
+    [0, -1],
+    [-1, 1],
+    [-1, -1],
+    [1, -1],
+    [1, 1],
   ];
 
   return findValidMoves(king, directions, board);
