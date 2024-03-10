@@ -1,51 +1,12 @@
 import './App.css';
 import { useState, useEffect } from 'react';
-import DefaultBoard from './defBoard.js';
+import DefaultBoard from './components/DefaultBoard.js';
 import calcPosMoves from './pieceMoves.js';
 import attackedTiles from './attackedTiles.js'
+import { Tile } from './components/Tile.js';
+import { StalemateScreen, MateScreen } from './components/EndgameScreens.js';
+import { PawnPromotionSelect } from './components/PawnPromotionSelect.js';
 
-function Tile({ piece, color, active, isLight, clickHandler, kingCheck }) {
-  return (
-    <div
-      className={kingCheck ? 'kingInCheck' : active ? (isLight ? 'highlightedLightTile' : 'highlightedDarkTile') : (isLight ? 'lightTile' : 'darkTile')}
-      onClick={clickHandler}
-    >
-      {piece ? 
-        <img src={process.env.PUBLIC_URL + `/${color}${piece}.png`}
-          width="80"
-          height="80"
-          alt={piece}>
-        </img> : null}
-    </div>
-  )
-}
-
-function StalemateScreen({ }) {
-  return (
-    <div className="gameEndBox">
-      STALEMATE
-    </div>
-  )
-}
-
-function MateScreen({ turn }) {
-  return (
-    <div className="gameEndBox">
-      {(turn ? "WHITE" : "BLACK")} WON
-    </div>
-  )
-}
-
-function PromotionPopup({ onSelectPromotion, color }) {
-  return (
-    <div className="promotionPopup">
-      <img alt='Queen' width="170" height="170" src={process.env.PUBLIC_URL + `${color}Queen.png`} onClick={() => onSelectPromotion('Queen')}></img>
-      <img alt='Rook' width="170" height="170" src={process.env.PUBLIC_URL + `${color}Rook.png`} onClick={() => onSelectPromotion('Rook')}></img>
-      <img alt='Knight' width="170" height="170" src={process.env.PUBLIC_URL + `${color}Knight.png`} onClick={() => onSelectPromotion('Knight')}></img>
-      <img alt='Bishop' width="170" height="170" src={process.env.PUBLIC_URL + `${color}Bishop.png`} onClick={() => onSelectPromotion('Bishop')}></img>
-    </div>
-  );
-}
 
 function Chessboard() {
   const [board, setBoard] = useState(DefaultBoard());
@@ -310,7 +271,7 @@ function Chessboard() {
               />
             ))
           ))}
-          {showPromoteSelect && <PromotionPopup onSelectPromotion={handlePromotion} color={board[promRow][promCol].piece.color}/>}
+          {showPromoteSelect && <PawnPromotionSelect onSelectPromotion={handlePromotion} color={board[promRow][promCol].piece.color}/>}
           {stalemate && <StalemateScreen />}
           {mate && <MateScreen turn={turn}/>}
       </div>
